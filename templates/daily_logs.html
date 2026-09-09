@@ -1,0 +1,71 @@
+{% extends 'base.html' %}
+
+{% block title %}Daily Logs | DODL{% endblock %}
+
+{% block content %}
+  <h1 class="page-title">Daily Activity / Presence Log</h1>
+  <p class="subtle-text">Track activities, working hours, meeting remarks and daily plans.</p>
+
+  <div class="form-card mb-4">
+    <h3>{% if selected_log %}Edit Daily Log{% else %}Add Daily Log{% endif %}</h3>
+    <form method="POST" action="{{ url_for('main.daily_logs') }}">
+      {% if selected_log %}<input type="hidden" name="log_id" value="{{ selected_log.id }}" />{% endif %}
+      <div class="row">
+        <div class="col-md-3 form-group"><label>Date</label><input class="form-control" type="date" name="date" value="{{ selected_log.date if selected_log else '' }}" required /></div>
+        <div class="col-md-3 form-group"><label>Working Status</label><select class="form-select" name="working_status"><option value="Present" {% if selected_log and selected_log.working_status == 'Present' %}selected{% endif %}>Present</option><option value="Remote" {% if selected_log and selected_log.working_status == 'Remote' %}selected{% endif %}>Remote</option><option value="Absent" {% if selected_log and selected_log.working_status == 'Absent' %}selected{% endif %}>Absent</option></select></div>
+        <div class="col-md-3 form-group"><label>Start Time</label><input class="form-control" type="time" name="working_start_time" value="{{ selected_log.working_start_time if selected_log else '' }}" required /></div>
+        <div class="col-md-3 form-group"><label>End Time</label><input class="form-control" type="time" name="working_end_time" value="{{ selected_log.working_end_time if selected_log else '' }}" required /></div>
+      </div>
+      <div class="row">
+        <div class="col-md-12 form-group"><label>Task / Activity Description</label><textarea class="form-control" name="task_description" rows="3" required>{{ selected_log.task_description if selected_log else '' }}</textarea></div>
+      </div>
+      <div class="row">
+        <div class="col-md-6 form-group"><label>Tomorrow's Action</label><input class="form-control" type="text" name="tomorrow_action" value="{{ selected_log.tomorrow_action if selected_log else '' }}" /></div>
+        <div class="col-md-6 form-group"><label>Target</label><input class="form-control" type="text" name="target" value="{{ selected_log.target if selected_log else '' }}" /></div>
+      </div>
+      <div class="row">
+        <div class="col-md-6 form-group"><label>Daily Report & Plan</label><textarea class="form-control" name="daily_report_plan" rows="3">{{ selected_log.daily_report_plan if selected_log else '' }}</textarea></div>
+        <div class="col-md-6 form-group"><label>Learning Response</label><textarea class="form-control" name="learning_response" rows="3">{{ selected_log.learning_response if selected_log else '' }}</textarea></div>
+      </div>
+      <div class="row">
+        <div class="col-md-6 form-group"><label>Meeting Remarks</label><textarea class="form-control" name="meeting_remarks" rows="3">{{ selected_log.meeting_remarks if selected_log else '' }}</textarea></div>
+        <div class="col-md-6 form-group"><label>Ideas / Suggestions</label><textarea class="form-control" name="ideas_suggestions" rows="3">{{ selected_log.ideas_suggestions if selected_log else '' }}</textarea></div>
+      </div>
+      <div class="action-row">
+        <button type="submit" class="btn btn-primary">Save Log</button>
+        <a href="{{ url_for('main.daily_logs') }}" class="btn btn-outline-secondary">Clear</a>
+      </div>
+    </form>
+  </div>
+
+  <div class="table-card">
+    <div class="section-header px-3 py-3">
+      <h3>Daily Logs</h3>
+    </div>
+    <table>
+      <thead>
+        <tr><th>Date</th><th>Status</th><th>Hours</th><th>Task</th><th>Actions</th></tr>
+      </thead>
+      <tbody>
+        {% for log in logs %}
+          <tr>
+            <td>{{ log.date }}</td>
+            <td><span class="status-pill status-{{ log.working_status|lower|replace(' ', '-') if log.working_status else 'pending' }}">{{ log.working_status }}</span></td>
+            <td>{{ log.daily_working_hours }}</td>
+            <td>{{ log.task_description[:80] }}</td>
+            <td>
+              <a href="{{ url_for('main.daily_logs') }}?edit_id={{ log.id }}" class="btn btn-sm btn-outline-primary">Edit</a>
+              <form method="POST" action="{{ url_for('main.daily_logs') }}" style="display:inline;">
+                <input type="hidden" name="action" value="delete" />
+                <input type="hidden" name="log_id" value="{{ log.id }}" />
+                <button type="submit" class="btn btn-sm btn-outline-danger">Delete</button>
+              </form>
+            </td>
+          </tr>
+        {% else %}
+          <tr><td colspan="5"><div class="empty-state">No daily logs available. Your activity records will appear here.</div></td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+{% endblock %}

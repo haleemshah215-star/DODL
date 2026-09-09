@@ -1,0 +1,125 @@
+{% extends 'base.html' %}
+
+{% block title %}Dashboard | DODL{% endblock %}
+
+{% block content %}
+  <h1 class="page-title">Intern Dashboard</h1>
+  <p class="subtle-text">Track your daily work, learning, task progress, reports and performance.</p>
+
+  <div class="metric-grid">
+    <div class="metric-card">
+      <div class="label">Total Working Hours</div>
+      <div class="value">{{ stats.total_working_hours }}</div>
+      <div class="trend">Hours logged</div>
+    </div>
+    <div class="metric-card">
+      <div class="label">Learning Hours</div>
+      <div class="value">{{ stats.learning_hours }}</div>
+      <div class="trend">Training progress</div>
+    </div>
+    <div class="metric-card">
+      <div class="label">Completed Tasks</div>
+      <div class="value">{{ stats.completed_tasks }}</div>
+      <div class="trend">Task completion</div>
+    </div>
+    <div class="metric-card">
+      <div class="label">Pending Tasks</div>
+      <div class="value">{{ stats.pending_tasks }}</div>
+      <div class="trend">Needs follow-up</div>
+    </div>
+    <div class="metric-card">
+      <div class="label">Attendance</div>
+      <div class="value">{{ stats.attendance }}%</div>
+      <div class="trend">Presence</div>
+    </div>
+    <div class="metric-card">
+      <div class="label">Documents Submitted</div>
+      <div class="value">{{ stats.documents_submitted }}</div>
+      <div class="trend">Submitted</div>
+    </div>
+    <div class="metric-card">
+      <div class="label">Documents Pending</div>
+      <div class="value">{{ stats.documents_pending }}</div>
+      <div class="trend">Awaiting review</div>
+    </div>
+    <div class="metric-card">
+      <div class="label">Weekly Performance</div>
+      <div class="value">{{ stats.weekly_performance }}%</div>
+      <div class="trend">Current score</div>
+    </div>
+  </div>
+
+  <div class="row mt-4">
+    <div class="col-lg-6 mb-4">
+      <div class="chart-box">
+        <h4>Working Hours Chart</h4>
+        <div class="chart-placeholder">Hours by week/month</div>
+      </div>
+    </div>
+    <div class="col-lg-6 mb-4">
+      <div class="chart-box">
+        <h4>Task Progress</h4>
+        <div class="chart-placeholder">Pending / In Progress / Completed</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="row mt-2">
+    <div class="col-lg-6 mb-4">
+      <div class="chart-box">
+        <h4>Learning Progress</h4>
+        <div class="chart-placeholder">Proficiency trend</div>
+      </div>
+    </div>
+    <div class="col-lg-6 mb-4">
+      <div class="chart-box">
+        <h4>Attendance</h4>
+        <div class="chart-placeholder">Presence percentage</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="row mt-2">
+    <div class="col-lg-6 mb-4">
+      <div class="table-card">
+        <div class="section-header px-3 py-3">
+          <h3>Recent Activity</h3>
+        </div>
+        <table>
+          <thead>
+            <tr><th>Activity</th><th>Date</th></tr>
+          </thead>
+          <tbody>
+            {% for item in recent_activity %}
+              <tr>
+                <td>{{ item.action }}</td>
+                <td>{{ item.created_at.strftime('%d %b %Y') }}</td>
+              </tr>
+            {% else %}
+              <tr><td colspan="2">No activity recorded yet.</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+    <div class="col-lg-6 mb-4">
+      <div class="table-card">
+        <div class="section-header px-3 py-3">
+          <h3>Notifications</h3>
+        </div>
+        <table>
+          <tbody>
+            {% for item in notifications %}
+              <tr>
+                <td>{{ item.title }}</td>
+                <td>{{ item.created_at.strftime('%d %b') }}</td>
+              </tr>
+            {% else %}
+              <tr><td>No notifications available.</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+{% endblock %}

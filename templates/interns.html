@@ -1,0 +1,28 @@
+{% extends 'base.html' %}
+
+{% block title %}Interns | DODL{% endblock %}
+
+{% block content %}
+  <h1 class="page-title">Intern Management</h1>
+  <p class="subtle-text">View complete intern profiles and internship details.</p>
+
+  <div class="table-card">
+    <div class="section-header px-3 py-3"><h3>Intern Profiles</h3></div>
+    <table>
+      <thead><tr><th>Name</th><th>ID</th><th>Department</th><th>Role</th><th>Status</th></tr></thead>
+      <tbody>
+        {% for intern in interns %}
+          <tr>
+            <td>{{ intern.full_name }}</td>
+            <td>{{ intern.internship_id }}</td>
+            <td>{{ intern.department }}</td>
+            <td>{{ intern.role|title }}</td>
+            <td><span class="status-pill status-approved">Active</span></td>
+          </tr>
+        {% else %}
+          <tr><td colspan="5"><div class="empty-state">No intern records found.</div></td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+{% endblock %}

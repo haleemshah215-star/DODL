@@ -1,0 +1,33 @@
+{% extends 'base.html' %}
+
+{% block title %}Reports | DODL{% endblock %}
+
+{% block content %}
+  <h1 class="page-title">Reports</h1>
+  <p class="subtle-text">Generate internship reports with business and learning insights.</p>
+
+  <div class="action-row mb-4">
+    <a class="btn btn-primary" href="{{ url_for('main.export_reports', format='csv') }}">Export CSV</a>
+    <a class="btn btn-outline-primary" href="{{ url_for('main.export_reports', format='xlsx') }}">Export Excel</a>
+    <a class="btn btn-outline-secondary" href="{{ url_for('main.export_reports', format='pdf') }}">Export PDF</a>
+  </div>
+
+  <div class="table-card">
+    <div class="section-header px-3 py-3"><h3>Attendance and Activity Reports</h3></div>
+    <table>
+      <thead><tr><th>Date</th><th>Status</th><th>Hours</th><th>Task</th></tr></thead>
+      <tbody>
+        {% for record in records %}
+          <tr>
+            <td>{{ record.date }}</td>
+            <td>{{ record.working_status }}</td>
+            <td>{{ record.daily_working_hours }}</td>
+            <td>{{ record.task_description[:50] }}</td>
+          </tr>
+        {% else %}
+          <tr><td colspan="4"><div class="empty-state">No report data available.</div></td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+{% endblock %}

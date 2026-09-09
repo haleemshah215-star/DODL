@@ -1,0 +1,45 @@
+{% extends 'base.html' %}
+
+{% block title %}DODL Internship Management System{% endblock %}
+
+{% block content %}
+  <section class="hero-section">
+    <div class="hero-grid">
+      <div>
+        <span class="badge text-bg-light">Institutional Internship Workflow</span>
+        <h1>DODL Internship Management System</h1>
+        <p>Manage your internship activities, tasks, learning, documents and performance in one place.</p>
+        <div class="hero-actions">
+          <a class="btn btn-primary" href="{{ url_for('main.login') }}">Login</a>
+          <a class="btn btn-outline-primary" href="{{ url_for('main.register') }}">Create Account</a>
+        </div>
+      </div>
+      <div class="dashboard-card">
+        <div class="section-header">
+          <h3>Dashboard Overview</h3>
+          <span class="status-pill status-approved">Live</span>
+        </div>
+        <div class="metric-grid">
+          <div class="metric-card">
+            <div class="label">Working Hours</div>
+            <div class="value">140h</div>
+            <div class="trend">+12% this month</div>
+          </div>
+          <div class="metric-card">
+            <div class="label">Tasks</div>
+            <div class="value">18</div>
+            <div class="trend">5 Completed</div>
+          </div>
+          <div class="metric-card">
+            <div class="label">Reports</div>
+            <div class="value">6</div>
+            <div class="trend">2 Approved</div>
+          </div>
+        </div>
+        <div class="chart-box mt-4">
+          <div class="chart-placeholder">Performance overview chart</div>
+        </div>
+      </div>
+    </div>
+  </section>
+{% endblock %}

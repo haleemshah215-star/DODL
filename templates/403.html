@@ -1,0 +1,9 @@
+{% extends 'base.html' %}
+
+{% block content %}
+  <div class="empty-state mt-5">
+    <h1>403 - Forbidden</h1>
+    <p>You do not have permission to access this area.</p>
+    <a href="{{ url_for('main.dashboard') }}" class="btn btn-primary">Back to Dashboard</a>
+  </div>
+{% endblock %}

@@ -1,0 +1,43 @@
+{% extends 'base.html' %}
+
+{% block title %}Supervisor Feedback | DODL{% endblock %}
+
+{% block content %}
+  <h1 class="page-title">Supervisor Feedback</h1>
+  <p class="subtle-text">Review and share feedback, approvals and ratings for intern work.</p>
+
+  <div class="form-card mb-4">
+    <h3>Submit Feedback</h3>
+    <form method="POST" action="{{ url_for('main.feedback') }}">
+      <div class="row">
+        <div class="col-md-3 form-group"><label>Entity Type</label><select class="form-select" name="entity_type"><option value="Daily Log">Daily Log</option><option value="Weekly Report">Weekly Report</option><option value="Learning Diary">Learning Diary</option><option value="Task">Task</option></select></div>
+        <div class="col-md-3 form-group"><label>Rating</label><input class="form-control" type="number" min="1" max="5" name="rating" /></div>
+        <div class="col-md-3 form-group"><label>Approval</label><select class="form-select" name="approval_state"><option value="Pending">Pending</option><option value="Approved">Approved</option><option value="Rejected">Rejected</option></select></div>
+        <div class="col-md-3 form-group"><label>Intern ID</label><input class="form-control" type="number" name="user_id" value="1" /></div>
+      </div>
+      <div class="row">
+        <div class="col-md-12 form-group"><label>Comment</label><textarea class="form-control" rows="3" name="comment"></textarea></div>
+      </div>
+      <button type="submit" class="btn btn-primary">Submit Feedback</button>
+    </form>
+  </div>
+
+  <div class="table-card">
+    <div class="section-header px-3 py-3"><h3>Feedback History</h3></div>
+    <table>
+      <thead><tr><th>Entity</th><th>Rating</th><th>State</th><th>Comment</th></tr></thead>
+      <tbody>
+        {% for item in feedback_list %}
+          <tr>
+            <td>{{ item.entity_type }}</td>
+            <td>{{ item.rating }}/5</td>
+            <td><span class="status-pill status-{{ item.approval_state|lower }}">{{ item.approval_state }}</span></td>
+            <td>{{ item.comment }}</td>
+          </tr>
+        {% else %}
+          <tr><td colspan="4"><div class="empty-state">No feedback entries yet.</div></td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+{% endblock %}

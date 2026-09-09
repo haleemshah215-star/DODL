@@ -1,0 +1,51 @@
+{% extends 'base.html' %}
+
+{% block title %}User Management | DODL{% endblock %}
+
+{% block content %}
+  <h1 class="page-title">User Management</h1>
+  <p class="subtle-text">Add, edit, assign roles and manage user records.</p>
+
+  <div class="form-card mb-4">
+    <h3>Add or Edit User</h3>
+    <form method="POST" action="{{ url_for('main.admin_users') }}">
+      <div class="row">
+        <div class="col-md-3 form-group"><label>Full Name</label><input class="form-control" type="text" name="full_name" required /></div>
+        <div class="col-md-3 form-group"><label>Email</label><input class="form-control" type="email" name="email" required /></div>
+        <div class="col-md-3 form-group"><label>Department</label><input class="form-control" type="text" name="department" required /></div>
+        <div class="col-md-3 form-group"><label>Role</label><select class="form-select" name="role"><option value="intern">Intern</option><option value="supervisor">Supervisor</option><option value="admin">Admin</option></select></div>
+      </div>
+      <div class="row">
+        <div class="col-md-6 form-group"><label>Internship ID</label><input class="form-control" type="text" name="internship_id" /></div>
+        <div class="col-md-6 form-group"><label>Password</label><input class="form-control" type="password" name="password" /></div>
+      </div>
+      <button class="btn btn-primary" type="submit">Save User</button>
+    </form>
+  </div>
+
+  <div class="table-card">
+    <div class="section-header px-3 py-3"><h3>All Users</h3></div>
+    <table>
+      <thead><tr><th>Name</th><th>Email</th><th>Department</th><th>Role</th><th>Action</th></tr></thead>
+      <tbody>
+        {% for user in users %}
+          <tr>
+            <td>{{ user.full_name }}</td>
+            <td>{{ user.email }}</td>
+            <td>{{ user.department }}</td>
+            <td>{{ user.role|title }}</td>
+            <td>
+              <form method="POST" action="{{ url_for('main.admin_users') }}" style="display:inline;">
+                <input type="hidden" name="action" value="delete" />
+                <input type="hidden" name="user_id" value="{{ user.id }}" />
+                <button class="btn btn-sm btn-outline-danger" type="submit">Delete</button>
+              </form>
+            </td>
+          </tr>
+        {% else %}
+          <tr><td colspan="5"><div class="empty-state">No users found.</div></td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+{% endblock %}

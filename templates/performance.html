@@ -1,0 +1,47 @@
+{% extends 'base.html' %}
+
+{% block title %}Performance | DODL{% endblock %}
+
+{% block content %}
+  <h1 class="page-title">Performance Analytics</h1>
+  <p class="subtle-text">Review attendance, working hours, learning progress and tasks completion rates.</p>
+
+  <div class="metric-grid">
+    {% for record in performances[:1] %}
+      <div class="metric-card"><div class="label">Overall Performance</div><div class="value">{{ record.overall_score }}%</div></div>
+      <div class="metric-card"><div class="label">Attendance Rate</div><div class="value">{{ record.attendance_rate }}%</div></div>
+      <div class="metric-card"><div class="label">Task Completion</div><div class="value">{{ record.task_completion_rate }}%</div></div>
+      <div class="metric-card"><div class="label">Learning Progress</div><div class="value">{{ record.learning_progress }}%</div></div>
+    {% else %}
+      <div class="metric-card"><div class="label">Overall Performance</div><div class="value">0%</div></div>
+      <div class="metric-card"><div class="label">Attendance Rate</div><div class="value">0%</div></div>
+      <div class="metric-card"><div class="label">Task Completion</div><div class="value">0%</div></div>
+      <div class="metric-card"><div class="label">Learning Progress</div><div class="value">0%</div></div>
+    {% endfor %}
+  </div>
+
+  <div class="row mt-4">
+    <div class="col-lg-6"><div class="chart-box"><h4>Weekly Performance</h4><div class="chart-placeholder">Trend chart</div></div></div>
+    <div class="col-lg-6"><div class="chart-box"><h4>Document Completion</h4><div class="chart-placeholder">Document completion graph</div></div></div>
+  </div>
+
+  <div class="table-card mt-4">
+    <div class="section-header px-3 py-3"><h3>Performance History</h3></div>
+    <table>
+      <thead><tr><th>Month</th><th>Attendance</th><th>Working Hours</th><th>Task Rate</th><th>Overall Score</th></tr></thead>
+      <tbody>
+        {% for record in performances %}
+          <tr>
+            <td>{{ record.month }}</td>
+            <td>{{ record.attendance_rate }}%</td>
+            <td>{{ record.working_hours }}</td>
+            <td>{{ record.task_completion_rate }}%</td>
+            <td>{{ record.overall_score }}%</td>
+          </tr>
+        {% else %}
+          <tr><td colspan="5"><div class="empty-state">No performance data available.</div></td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+{% endblock %}

@@ -1,0 +1,27 @@
+{% extends 'base.html' %}
+
+{% block title %}Notifications | DODL{% endblock %}
+
+{% block content %}
+  <h1 class="page-title">Notifications</h1>
+  <p class="subtle-text">Track updates and important internship announcements.</p>
+
+  <div class="table-card">
+    <div class="section-header px-3 py-3"><h3>Inbox</h3></div>
+    <table>
+      <thead><tr><th>Title</th><th>Message</th><th>Type</th><th>Date</th></tr></thead>
+      <tbody>
+        {% for item in notifications %}
+          <tr>
+            <td>{{ item.title }}</td>
+            <td>{{ item.content }}</td>
+            <td><span class="status-pill status-approved">{{ item.type }}</span></td>
+            <td>{{ item.created_at.strftime('%d %b %Y') }}</td>
+          </tr>
+        {% else %}
+          <tr><td colspan="4"><div class="empty-state">No notifications available.</div></td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+{% endblock %}

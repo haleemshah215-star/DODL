@@ -1,0 +1,65 @@
+{% extends 'base.html' %}
+
+{% block title %}Task Planner | DODL{% endblock %}
+
+{% block content %}
+  <h1 class="page-title">Task Planner</h1>
+  <p class="subtle-text">Organize, assign and track internship tasks and deadlines.</p>
+
+  <div class="form-card mb-4">
+    <h3>{% if selected_task %}Edit Task{% else %}Add Task{% endif %}</h3>
+    <form method="POST" action="{{ url_for('main.tasks') }}">
+      {% if selected_task %}<input type="hidden" name="task_id" value="{{ selected_task.id }}" />{% endif %}
+      <div class="row">
+        <div class="col-md-6 form-group"><label>Task Name</label><input class="form-control" type="text" name="task_name" value="{{ selected_task.task_name if selected_task else '' }}" required /></div>
+        <div class="col-md-6 form-group"><label>Domain</label><input class="form-control" type="text" name="domain" value="{{ selected_task.domain if selected_task else '' }}" /></div>
+      </div>
+      <div class="row">
+        <div class="col-md-12 form-group"><label>Description</label><textarea class="form-control" rows="3" name="description">{{ selected_task.description if selected_task else '' }}</textarea></div>
+      </div>
+      <div class="row">
+        <div class="col-md-3 form-group"><label>Assigned Date</label><input class="form-control" type="date" name="assigned_date" value="{{ selected_task.assigned_date if selected_task else '' }}" /></div>
+        <div class="col-md-3 form-group"><label>Deadline</label><input class="form-control" type="date" name="deadline" value="{{ selected_task.deadline if selected_task else '' }}" required /></div>
+        <div class="col-md-2 form-group"><label>Week</label><input class="form-control" type="number" name="week" value="{{ selected_task.week if selected_task else '' }}" /></div>
+        <div class="col-md-2 form-group"><label>Priority</label><select class="form-select" name="priority"><option value="Low" {% if selected_task and selected_task.priority == 'Low' %}selected{% endif %}>Low</option><option value="Medium" {% if selected_task and selected_task.priority == 'Medium' %}selected{% endif %}>Medium</option><option value="High" {% if selected_task and selected_task.priority == 'High' %}selected{% endif %}>High</option><option value="Urgent" {% if selected_task and selected_task.priority == 'Urgent' %}selected{% endif %}>Urgent</option></select></div>
+        <div class="col-md-2 form-group"><label>Status</label><select class="form-select" name="status"><option value="Pending" {% if selected_task and selected_task.status == 'Pending' %}selected{% endif %}>Pending</option><option value="In Progress" {% if selected_task and selected_task.status == 'In Progress' %}selected{% endif %}>In Progress</option><option value="Completed" {% if selected_task and selected_task.status == 'Completed' %}selected{% endif %}>Completed</option><option value="Cancelled" {% if selected_task and selected_task.status == 'Cancelled' %}selected{% endif %}>Cancelled</option></select></div>
+      </div>
+      <div class="row">
+        <div class="col-md-3 form-group"><label>Progress %</label><input class="form-control" type="number" name="progress_percentage" min="0" max="100" value="{{ selected_task.progress_percentage if selected_task else '0' }}" /></div>
+        <div class="col-md-3 form-group"><label>Assigned By</label><input class="form-control" type="text" name="assigned_by" value="{{ selected_task.assigned_by if selected_task else current_user.full_name }}" /></div>
+        <div class="col-md-6 form-group"><label>Comments</label><input class="form-control" type="text" name="comments" value="{{ selected_task.comments if selected_task else '' }}" /></div>
+      </div>
+      <button class="btn btn-primary" type="submit">Save Task</button>
+    </form>
+  </div>
+
+  <div class="table-card">
+    <div class="section-header px-3 py-3"><h3>Task List</h3></div>
+    <table>
+      <thead><tr><th>Task Name</th><th>Priority</th><th>Status</th><th>Progress</th><th>Deadline</th><th>Action</th></tr></thead>
+      <tbody>
+        {% for item in tasks %}
+          <tr>
+            <td>{{ item.task_name }}</td>
+            <td><span class="status-pill status-{{ item.priority|lower }}">{{ item.priority }}</span></td>
+            <td><span class="status-pill status-{{ item.status|lower|replace(' ', '-') }}">{{ item.status }}</span></td>
+            <td>
+              <div class="progress"><div class="progress-bar" style="width: {{ item.progress_percentage }}%"></div></div>
+            </td>
+            <td>{{ item.deadline }}</td>
+            <td>
+              <a href="{{ url_for('main.tasks') }}?edit_id={{ item.id }}" class="btn btn-sm btn-outline-primary">Edit</a>
+              <form method="POST" action="{{ url_for('main.tasks') }}" style="display:inline;">
+                <input type="hidden" name="action" value="delete" />
+                <input type="hidden" name="task_id" value="{{ item.id }}" />
+                <button class="btn btn-sm btn-outline-danger" type="submit">Delete</button>
+              </form>
+            </td>
+          </tr>
+        {% else %}
+          <tr><td colspan="6"><div class="empty-state">No tasks available. Your assigned tasks will appear here.</div></td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+{% endblock %}

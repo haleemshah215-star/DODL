@@ -1,0 +1,34 @@
+{% extends 'base.html' %}
+
+{% block title %}Supervisor Dashboard | DODL{% endblock %}
+
+{% block content %}
+  <h1 class="page-title">Supervisor Dashboard</h1>
+  <p class="subtle-text">Review intern progress, tasks, submissions and feedback.</p>
+
+  <div class="metric-grid">
+    <div class="metric-card"><div class="label">My Interns</div><div class="value">{{ stats.total_interns }}</div></div>
+    <div class="metric-card"><div class="label">Pending Reports</div><div class="value">{{ stats.pending_reports }}</div></div>
+    <div class="metric-card"><div class="label">Active Tasks</div><div class="value">{{ stats.active_tasks }}</div></div>
+    <div class="metric-card"><div class="label">Feedback</div><div class="value">{{ stats.feedback_count }}</div></div>
+  </div>
+
+  <div class="table-card mt-4">
+    <div class="section-header px-3 py-3"><h3>Interns Assigned</h3></div>
+    <table>
+      <thead><tr><th>Name</th><th>Department</th><th>ID</th><th>Status</th></tr></thead>
+      <tbody>
+        {% for intern in interns %}
+          <tr>
+            <td>{{ intern.full_name }}</td>
+            <td>{{ intern.department }}</td>
+            <td>{{ intern.internship_id }}</td>
+            <td><span class="status-pill status-approved">Active</span></td>
+          </tr>
+        {% else %}
+          <tr><td colspan="4">No interns assigned.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+{% endblock %}

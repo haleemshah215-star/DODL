@@ -1,0 +1,50 @@
+{% extends 'base.html' %}
+
+{% block title %}Create Account | DODL{% endblock %}
+
+{% block content %}
+  <div class="auth-shell">
+    <div class="auth-box">
+      <h2>Create Account</h2>
+      <p>Create a new internship account.</p>
+      <form method="POST" action="{{ url_for('main.register') }}">
+        <div class="form-group">
+          <label>Full Name</label>
+          <input class="form-control" type="text" name="full_name" required />
+        </div>
+        <div class="form-group">
+          <label>Email</label>
+          <input class="form-control" type="email" name="email" required />
+        </div>
+        <div class="form-group">
+          <label>Password</label>
+          <input class="form-control" type="password" name="password" required />
+        </div>
+        <div class="form-group">
+          <label>Confirm Password</label>
+          <input class="form-control" type="password" name="confirm_password" required />
+        </div>
+        <div class="form-group">
+          <label>Internship ID</label>
+          <input class="form-control" type="text" name="internship_id" required />
+        </div>
+        <div class="form-group">
+          <label>Department</label>
+          <input class="form-control" type="text" name="department" required />
+        </div>
+        <div class="form-group">
+          <label>Role</label>
+          <select class="form-select" name="role" required>
+            <option value="intern">Intern</option>
+            <option value="supervisor">Supervisor</option>
+            <option value="admin">Admin</option>
+          </select>
+        </div>
+        <button type="submit" class="btn btn-primary w-100">Create Account</button>
+      </form>
+      <div class="text-center mt-3">
+        <span>Already have an account? <a href="{{ url_for('main.login') }}">Login</a></span>
+      </div>
+    </div>
+  </div>
+{% endblock %}

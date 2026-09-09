@@ -1,0 +1,66 @@
+{% extends 'base.html' %}
+
+{% block title %}Weekly Summary | DODL{% endblock %}
+
+{% block content %}
+  <h1 class="page-title">Weekly Summary</h1>
+  <p class="subtle-text">Document achievements, learning and next-week planning.</p>
+
+  <div class="form-card mb-4">
+    <h3>{% if selected_summary %}Edit Weekly Summary{% else %}Create Weekly Summary{% endif %}</h3>
+    <form method="POST" action="{{ url_for('main.weekly_summaries') }}">
+      {% if selected_summary %}<input type="hidden" name="summary_id" value="{{ selected_summary.id }}" />{% endif %}
+      <div class="row">
+        <div class="col-md-3 form-group"><label>Week</label><input class="form-control" type="number" name="week" value="{{ selected_summary.week if selected_summary else '' }}" required /></div>
+        <div class="col-md-3 form-group"><label>Start Date</label><input class="form-control" type="date" name="start_date" value="{{ selected_summary.start_date if selected_summary else '' }}" required /></div>
+        <div class="col-md-3 form-group"><label>End Date</label><input class="form-control" type="date" name="end_date" value="{{ selected_summary.end_date if selected_summary else '' }}" required /></div>
+        <div class="col-md-3 form-group"><label>Total Working Hours</label><input class="form-control" type="number" step="0.1" name="total_working_hours" value="{{ selected_summary.total_working_hours if selected_summary else '' }}" /></div>
+      </div>
+      <div class="row">
+        <div class="col-md-12 form-group"><label>Top 3 Achievements</label><textarea class="form-control" name="achievements" rows="3">{{ selected_summary.achievements if selected_summary else '' }}</textarea></div>
+      </div>
+      <div class="row">
+        <div class="col-md-6 form-group"><label>Work Links / Proof</label><input class="form-control" type="text" name="work_links" value="{{ selected_summary.work_links if selected_summary else '' }}" /></div>
+        <div class="col-md-6 form-group"><label>Technical Learnings</label><input class="form-control" type="text" name="technical_learnings" value="{{ selected_summary.technical_learnings if selected_summary else '' }}" /></div>
+      </div>
+      <div class="row">
+        <div class="col-md-6 form-group"><label>Challenges Faced</label><textarea class="form-control" name="challenges" rows="3">{{ selected_summary.challenges if selected_summary else '' }}</textarea></div>
+        <div class="col-md-6 form-group"><label>Next Week Plan</label><textarea class="form-control" name="next_week_plan" rows="3">{{ selected_summary.next_week_plan if selected_summary else '' }}</textarea></div>
+      </div>
+      <div class="row">
+        <div class="col-md-3 form-group"><label>Self Satisfaction</label><input class="form-control" type="number" name="self_satisfaction" min="1" max="5" value="{{ selected_summary.self_satisfaction if selected_summary else '' }}" /></div>
+        <div class="col-md-3 form-group"><label>Mood</label><input class="form-control" type="text" name="mood" value="{{ selected_summary.mood if selected_summary else '' }}" /></div>
+        <div class="col-md-3 form-group"><label>Status</label><select class="form-select" name="status"><option value="Draft" {% if selected_summary and selected_summary.status == 'Draft' %}selected{% endif %}>Draft</option><option value="Submitted" {% if selected_summary and selected_summary.status == 'Submitted' %}selected{% endif %}>Submitted</option><option value="Under Review" {% if selected_summary and selected_summary.status == 'Under Review' %}selected{% endif %}>Under Review</option><option value="Approved" {% if selected_summary and selected_summary.status == 'Approved' %}selected{% endif %}>Approved</option><option value="Rejected" {% if selected_summary and selected_summary.status == 'Rejected' %}selected{% endif %}>Rejected</option></select></div>
+        <div class="col-md-3 form-group"><label>Supervisor Comments</label><input class="form-control" type="text" name="supervisor_comments" value="{{ selected_summary.supervisor_comments if selected_summary else '' }}" /></div>
+      </div>
+      <div class="action-row"><button class="btn btn-primary" type="submit">Save Summary</button></div>
+    </form>
+  </div>
+
+  <div class="table-card">
+    <div class="section-header px-3 py-3"><h3>Weekly Summaries</h3></div>
+    <table>
+      <thead><tr><th>Week</th><th>Hours</th><th>Status</th><th>Achievement</th><th>Action</th></tr></thead>
+      <tbody>
+        {% for summary in summaries %}
+          <tr>
+            <td>{{ summary.week }}</td>
+            <td>{{ summary.total_working_hours }}</td>
+            <td><span class="status-pill status-{{ summary.status|lower|replace(' ', '-') }}">{{ summary.status }}</span></td>
+            <td>{{ summary.achievements[:60] }}</td>
+            <td>
+              <a href="{{ url_for('main.weekly_summaries') }}?edit_id={{ summary.id }}" class="btn btn-sm btn-outline-primary">Edit</a>
+              <form method="POST" action="{{ url_for('main.weekly_summaries') }}" style="display:inline;">
+                <input type="hidden" name="action" value="delete" />
+                <input type="hidden" name="summary_id" value="{{ summary.id }}" />
+                <button class="btn btn-sm btn-outline-danger" type="submit">Delete</button>
+              </form>
+            </td>
+          </tr>
+        {% else %}
+          <tr><td colspan="5"><div class="empty-state">No weekly summaries available.</div></td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+{% endblock %}

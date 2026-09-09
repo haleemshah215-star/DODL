@@ -1,0 +1,50 @@
+{% extends 'base.html' %}
+
+{% block title %}Documents | DODL{% endblock %}
+
+{% block content %}
+  <h1 class="page-title">Personal Document Checklist</h1>
+  <p class="subtle-text">Upload, verify and track mandatory internship documentation.</p>
+
+  <div class="form-card mb-4">
+    <h3>Upload Document</h3>
+    <form method="POST" action="{{ url_for('main.documents') }}" enctype="multipart/form-data">
+      <div class="row">
+        <div class="col-md-4 form-group"><label>Document Name</label><input class="form-control" type="text" name="document_name" required /></div>
+        <div class="col-md-4 form-group"><label>Required Date</label><input class="form-control" type="date" name="required_date" required /></div>
+        <div class="col-md-4 form-group"><label>Submission Date</label><input class="form-control" type="date" name="submission_date" /></div>
+      </div>
+      <div class="row">
+        <div class="col-md-3 form-group"><label>Verification Status</label><select class="form-select" name="verification_status"><option value="Pending">Pending</option><option value="Submitted">Submitted</option><option value="Under Review">Under Review</option><option value="Verified">Verified</option><option value="Rejected">Rejected</option></select></div>
+        <div class="col-md-3 form-group"><label>Hard Copy Status</label><select class="form-select" name="hard_copy_status"><option value="Pending">Pending</option><option value="Submitted">Submitted</option><option value="Verified">Verified</option></select></div>
+        <div class="col-md-3 form-group"><label>Soft Copy / Drive Link</label><input class="form-control" type="url" name="soft_copy_link" /></div>
+        <div class="col-md-3 form-group"><label>Verification Link</label><input class="form-control" type="url" name="verification_link" /></div>
+      </div>
+      <div class="row">
+        <div class="col-md-6 form-group"><label>Remarks</label><input class="form-control" type="text" name="remarks" /></div>
+        <div class="col-md-6 form-group"><label>Upload File</label><input class="form-control" type="file" name="file" /></div>
+      </div>
+      <button type="submit" class="btn btn-primary">Upload</button>
+    </form>
+  </div>
+
+  <div class="table-card">
+    <div class="section-header px-3 py-3"><h3>Submitted Documents</h3></div>
+    <table>
+      <thead><tr><th>Name</th><th>Submitted</th><th>Status</th><th>Hard Copy</th><th>Link</th></tr></thead>
+      <tbody>
+        {% for doc in documents %}
+          <tr>
+            <td>{{ doc.document_name }}</td>
+            <td>{{ doc.submission_date }}</td>
+            <td><span class="status-pill status-{{ doc.verification_status|lower|replace(' ', '-') }}">{{ doc.verification_status }}</span></td>
+            <td>{{ doc.hard_copy_status }}</td>
+            <td><a href="{{ doc.soft_copy_link }}" target="_blank">Open</a></td>
+          </tr>
+        {% else %}
+          <tr><td colspan="5"><div class="empty-state">No documents uploaded yet.</div></td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+{% endblock %}

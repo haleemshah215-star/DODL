@@ -1,0 +1,48 @@
+{% extends 'base.html' %}
+
+{% block title %}Skill Ambassador | DODL{% endblock %}
+
+{% block content %}
+  <h1 class="page-title">Skill Ambassador Tracker</h1>
+  <p class="subtle-text">Track learner outreach, promotional activities and selected training.</p>
+
+  <div class="form-card mb-4">
+    <h3>Add Skill Ambassador Entry</h3>
+    <form method="POST" action="{{ url_for('main.skill_ambassador') }}">
+      <div class="row">
+        <div class="col-md-3 form-group"><label>Week</label><input class="form-control" type="number" name="week" /></div>
+        <div class="col-md-3 form-group"><label>Enrolled Learners</label><input class="form-control" type="number" name="enrolled_learners" /></div>
+        <div class="col-md-3 form-group"><label>Selected Training</label><input class="form-control" type="text" name="selected_training" /></div>
+        <div class="col-md-3 form-group"><label>Role</label><input class="form-control" type="text" name="role" /></div>
+      </div>
+      <div class="row">
+        <div class="col-md-6 form-group"><label>Social Media Promotion</label><input class="form-control" type="text" name="social_media_promotion" /></div>
+        <div class="col-md-6 form-group"><label>Ideas</label><input class="form-control" type="text" name="ideas" /></div>
+      </div>
+      <div class="row">
+        <div class="col-md-12 form-group"><label>Remarks</label><textarea class="form-control" rows="3" name="remarks"></textarea></div>
+      </div>
+      <button class="btn btn-primary" type="submit">Save</button>
+    </form>
+  </div>
+
+  <div class="table-card">
+    <div class="section-header px-3 py-3"><h3>Ambassador Records</h3></div>
+    <table>
+      <thead><tr><th>Week</th><th>Learners</th><th>Training</th><th>Promotion</th><th>Role</th></tr></thead>
+      <tbody>
+        {% for item in entries %}
+          <tr>
+            <td>{{ item.week }}</td>
+            <td>{{ item.enrolled_learners }}</td>
+            <td>{{ item.selected_training }}</td>
+            <td>{{ item.social_media_promotion }}</td>
+            <td>{{ item.role }}</td>
+          </tr>
+        {% else %}
+          <tr><td colspan="5"><div class="empty-state">No ambassador records available.</div></td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+{% endblock %}

@@ -1,0 +1,52 @@
+{% extends 'base.html' %}
+
+{% block title %}Admin Dashboard | DODL{% endblock %}
+
+{% block content %}
+  <h1 class="page-title">Admin Dashboard</h1>
+  <p class="subtle-text">Institution-wide internship, user, task and document oversight.</p>
+
+  <div class="metric-grid">
+    <div class="metric-card"><div class="label">Total Interns</div><div class="value">{{ stats.total_interns }}</div></div>
+    <div class="metric-card"><div class="label">Active Interns</div><div class="value">{{ stats.active_interns }}</div></div>
+    <div class="metric-card"><div class="label">Total Supervisors</div><div class="value">{{ stats.total_supervisors }}</div></div>
+    <div class="metric-card"><div class="label">Total Tasks</div><div class="value">{{ stats.total_tasks }}</div></div>
+    <div class="metric-card"><div class="label">Completed Tasks</div><div class="value">{{ stats.completed_tasks }}</div></div>
+    <div class="metric-card"><div class="label">Pending Tasks</div><div class="value">{{ stats.pending_tasks }}</div></div>
+    <div class="metric-card"><div class="label">Total Working Hours</div><div class="value">{{ stats.total_working_hours }}</div></div>
+    <div class="metric-card"><div class="label">Average Performance</div><div class="value">{{ stats.average_performance }}%</div></div>
+    <div class="metric-card"><div class="label">Pending Documents</div><div class="value">{{ stats.pending_documents }}</div></div>
+  </div>
+
+  <div class="row mt-4">
+    <div class="col-lg-6">
+      <div class="chart-box">
+        <h4>Intern Performance</h4>
+        <div class="chart-placeholder">Performance distribution</div>
+      </div>
+    </div>
+    <div class="col-lg-6">
+      <div class="chart-box">
+        <h4>Task Completion</h4>
+        <div class="chart-placeholder">Ongoing vs completed tasks</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="table-card mt-4">
+    <div class="section-header px-3 py-3"><h3>Recent Users</h3></div>
+    <table>
+      <thead><tr><th>Name</th><th>Department</th><th>Role</th><th>Status</th></tr></thead>
+      <tbody>
+        {% for user in interns %}
+          <tr>
+            <td>{{ user.full_name }}</td>
+            <td>{{ user.department }}</td>
+            <td>{{ user.role|title }}</td>
+            <td><span class="status-pill status-approved">Active</span></td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+{% endblock %}

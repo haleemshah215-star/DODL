@@ -1,0 +1,9 @@
+{% extends 'base.html' %}
+
+{% block content %}
+  <div class="empty-state mt-5">
+    <h1>500 - Server Error</h1>
+    <p>Something went wrong. Please try again later.</p>
+    <a href="{{ url_for('main.dashboard') }}" class="btn btn-primary">Back to Dashboard</a>
+  </div>
+{% endblock %}
