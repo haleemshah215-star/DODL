@@ -19,3 +19,4 @@ static/uploads/*
 .DS_Store
 .vscode/
 Thumbs.db
+.vercel/

@@ -11,6 +11,7 @@ from flask_login import current_user, login_required, login_user, logout_user
 from openpyxl import Workbook
 from reportlab.lib import colors
 from reportlab.lib.pagesizes import letter
+from reportlab.lib.styles import getSampleStyleSheet
 from reportlab.platypus import Paragraph, SimpleDocTemplate, Spacer, Table, TableStyle
 from werkzeug.utils import secure_filename
 
@@ -38,8 +39,22 @@ def role_required(*roles):
 
 
 def log_activity(user_id, action, details):
-    db.session.add(ActivityLog(user_id=user_id, action=action, details=details, created_at=datetime.utcnow()))
-    db.session.commit()
+    try:
+        db.session.add(ActivityLog(user_id=user_id, action=action, details=details, created_at=datetime.utcnow()))
+        db.session.commit()
+    except Exception:
+        db.session.rollback()
+
+
+def parse_date(value, default=None):
+    if not value:
+        return default
+    if isinstance(value, date):
+        return value
+    try:
+        return datetime.strptime(str(value).strip(), "%Y-%m-%d").date()
+    except (ValueError, TypeError):
+        return default
 
 
 def calculate_hours(start_time, end_time):
@@ -265,21 +280,22 @@ def daily_logs():
             return redirect(url_for("main.daily_logs"))
 
         daily_hours = calculate_hours(start_time, end_time)
+        parsed_d = parse_date(date_value, date.today())
         payload = {
             "user_id": current_user.id,
-            "date": date_value,
-            "day": datetime.strptime(date_value, "%Y-%m-%d").strftime("%A"),
+            "date": parsed_d,
+            "day": parsed_d.strftime("%A"),
             "task_description": task_description,
             "working_start_time": start_time,
             "working_end_time": end_time,
             "working_status": status,
             "daily_working_hours": daily_hours,
-            "tomorrow_action": request.form.get("tomorrow_action"),
-            "target": request.form.get("target"),
-            "daily_report_plan": request.form.get("daily_report_plan"),
-            "learning_response": request.form.get("learning_response"),
-            "meeting_remarks": request.form.get("meeting_remarks"),
-            "ideas_suggestions": request.form.get("ideas_suggestions"),
+            "tomorrow_action": request.form.get("tomorrow_action") or "",
+            "target": request.form.get("target") or "",
+            "daily_report_plan": request.form.get("daily_report_plan") or "",
+            "learning_response": request.form.get("learning_response") or "",
+            "meeting_remarks": request.form.get("meeting_remarks") or "",
+            "ideas_suggestions": request.form.get("ideas_suggestions") or "",
         }
 
         if log_id:
@@ -295,9 +311,13 @@ def daily_logs():
             db.session.add(log)
             message = "Daily log added."
 
-        db.session.commit()
-        log_activity(current_user.id, "Daily log added", f"Daily log for {date_value} saved.")
-        flash(message, "success")
+        try:
+            db.session.commit()
+            log_activity(current_user.id, "Daily log saved", f"Daily log for {parsed_d} saved.")
+            flash(message, "success")
+        except Exception as e:
+            db.session.rollback()
+            flash("Could not save daily log. Please try again.", "danger")
         return redirect(url_for("main.daily_logs"))
 
     logs = DailyLog.query.filter_by(user_id=current_user.id).order_by(DailyLog.date.desc()).all() if current_user.role == "intern" else DailyLog.query.order_by(DailyLog.date.desc()).all()
@@ -327,18 +347,18 @@ def weekly_summaries():
         data = {
             "user_id": current_user.id,
             "week": int(request.form.get("week", 1)),
-            "start_date": request.form.get("start_date"),
-            "end_date": request.form.get("end_date"),
+            "start_date": parse_date(request.form.get("start_date"), date.today()),
+            "end_date": parse_date(request.form.get("end_date"), date.today()),
             "total_working_hours": float(request.form.get("total_working_hours") or 0),
-            "achievements": request.form.get("achievements"),
-            "work_links": request.form.get("work_links"),
-            "technical_learnings": request.form.get("technical_learnings"),
-            "challenges": request.form.get("challenges"),
-            "next_week_plan": request.form.get("next_week_plan"),
+            "achievements": request.form.get("achievements") or "",
+            "work_links": request.form.get("work_links") or "",
+            "technical_learnings": request.form.get("technical_learnings") or "",
+            "challenges": request.form.get("challenges") or "",
+            "next_week_plan": request.form.get("next_week_plan") or "",
             "self_satisfaction": int(request.form.get("self_satisfaction", 0) or 0),
-            "mood": request.form.get("mood"),
+            "mood": request.form.get("mood") or "Neutral",
             "status": request.form.get("status", "Draft"),
-            "supervisor_comments": request.form.get("supervisor_comments"),
+            "supervisor_comments": request.form.get("supervisor_comments") or "",
         }
 
         if summary_id:
@@ -349,10 +369,15 @@ def weekly_summaries():
                 setattr(summary, key, value)
             message = "Weekly summary updated."
         else:
-            db.session.add(WeeklySummary(**data))
+            summary = WeeklySummary(**data)
+            db.session.add(summary)
             message = "Weekly summary created."
-        db.session.commit()
-        flash(message, "success")
+        try:
+            db.session.commit()
+            flash(message, "success")
+        except Exception:
+            db.session.rollback()
+            flash("Could not save weekly summary. Please try again.", "danger")
         return redirect(url_for("main.weekly_summaries"))
 
     if current_user.role == "intern":
@@ -384,14 +409,14 @@ def learning_diary():
 
         data = {
             "user_id": current_user.id,
-            "date": request.form.get("date"),
+            "date": parse_date(request.form.get("date"), date.today()),
             "week": int(request.form.get("week", 1)),
-            "topic": request.form.get("topic"),
-            "technical_insight": request.form.get("technical_insight"),
+            "topic": request.form.get("topic") or "",
+            "technical_insight": request.form.get("technical_insight") or "",
             "learning_time": float(request.form.get("learning_time") or 0),
-            "applied_in_dodl": request.form.get("applied_in_dodl"),
+            "applied_in_dodl": request.form.get("applied_in_dodl") or "",
             "proficiency_level": request.form.get("proficiency_level", "Beginner"),
-            "reflection": request.form.get("reflection"),
+            "reflection": request.form.get("reflection") or "",
         }
 
         if diary_id:
@@ -402,11 +427,16 @@ def learning_diary():
                 setattr(diary, key, value)
             message = "Learning diary entry updated."
         else:
-            db.session.add(LearningDiary(**data))
+            diary = LearningDiary(**data)
+            db.session.add(diary)
             message = "Learning diary entry created."
 
-        db.session.commit()
-        flash(message, "success")
+        try:
+            db.session.commit()
+            flash(message, "success")
+        except Exception:
+            db.session.rollback()
+            flash("Could not save learning diary entry. Please try again.", "danger")
         return redirect(url_for("main.learning_diary"))
 
     if current_user.role == "intern":
@@ -469,17 +499,17 @@ def tasks():
 
         data = {
             "user_id": current_user.id,
-            "task_name": request.form.get("task_name"),
-            "description": request.form.get("description"),
-            "domain": request.form.get("domain"),
-            "assigned_date": request.form.get("assigned_date") or date.today(),
-            "deadline": request.form.get("deadline"),
+            "task_name": request.form.get("task_name") or "",
+            "description": request.form.get("description") or "",
+            "domain": request.form.get("domain") or "General",
+            "assigned_date": parse_date(request.form.get("assigned_date"), date.today()),
+            "deadline": parse_date(request.form.get("deadline"), date.today()),
             "week": int(request.form.get("week") or 1),
             "priority": request.form.get("priority", "Medium"),
             "status": request.form.get("status", "Pending"),
             "progress_percentage": int(request.form.get("progress_percentage") or 0),
             "assigned_by": request.form.get("assigned_by") or current_user.full_name,
-            "comments": request.form.get("comments"),
+            "comments": request.form.get("comments") or "",
         }
 
         if task_id:
@@ -490,11 +520,16 @@ def tasks():
                 setattr(task, key, value)
             message = "Task updated."
         else:
-            db.session.add(Task(**data))
+            task = Task(**data)
+            db.session.add(task)
             message = "Task created."
 
-        db.session.commit()
-        flash(message, "success")
+        try:
+            db.session.commit()
+            flash(message, "success")
+        except Exception:
+            db.session.rollback()
+            flash("Could not save task. Please try again.", "danger")
         return redirect(url_for("main.tasks"))
 
     if current_user.role == "intern":
@@ -514,19 +549,21 @@ def documents():
 
         if file and file.filename:
             filename = secure_filename(file.filename)
-            saved_file = filename
-            file.save(current_app.config["UPLOAD_FOLDER"] + "/" + filename)
+            unique_name = f"{current_user.id}_{uuid4().hex[:8]}_{filename}"
+            saved_file = unique_name
+            os.makedirs(current_app.config["UPLOAD_FOLDER"], exist_ok=True)
+            file.save(os.path.join(current_app.config["UPLOAD_FOLDER"], unique_name))
 
         data = {
             "user_id": current_user.id,
-            "document_name": request.form.get("document_name"),
-            "required_date": request.form.get("required_date"),
-            "submission_date": request.form.get("submission_date") or date.today(),
+            "document_name": request.form.get("document_name") or "Document",
+            "required_date": parse_date(request.form.get("required_date"), date.today()),
+            "submission_date": parse_date(request.form.get("submission_date"), date.today()),
             "verification_status": request.form.get("verification_status", "Pending"),
             "hard_copy_status": request.form.get("hard_copy_status", "Pending"),
             "soft_copy_link": request.form.get("soft_copy_link") or (f"/static/uploads/{saved_file}" if saved_file else ""),
-            "verification_link": request.form.get("verification_link"),
-            "remarks": request.form.get("remarks"),
+            "verification_link": request.form.get("verification_link") or "",
+            "remarks": request.form.get("remarks") or "",
             "file_name": saved_file,
         }
 
@@ -535,13 +572,21 @@ def documents():
             if current_user.role != "admin" and document.user_id != current_user.id:
                 abort(403)
             for key, value in data.items():
+                if key == "file_name" and not value:
+                    continue
                 setattr(document, key, value)
             message = "Document updated."
         else:
-            db.session.add(DocumentRecord(**data))
+            document = DocumentRecord(**data)
+            db.session.add(document)
             message = "Document uploaded."
-        db.session.commit()
-        flash(message, "success")
+
+        try:
+            db.session.commit()
+            flash(message, "success")
+        except Exception:
+            db.session.rollback()
+            flash("Could not save document. Please try again.", "danger")
         return redirect(url_for("main.documents"))
 
     if current_user.role == "intern":
@@ -652,7 +697,8 @@ def export_reports(format):
     if format == "pdf":
         output = BytesIO()
         pdf = SimpleDocTemplate(output, pagesize=letter)
-        elements = [Paragraph("Daily Logs Report"), Spacer(1, 12)]
+        styles = getSampleStyleSheet()
+        elements = [Paragraph("Daily Logs Report", styles["Heading1"]), Spacer(1, 12)]
         data = [["Date", "Day", "Hours", "Status"]]
         for item in records:
             data.append([str(item.date), item.day, str(item.daily_working_hours), item.working_status])
@@ -679,9 +725,16 @@ def admin_users():
         user_id = request.form.get("user_id")
         if request.form.get("action") == "delete" and user_id:
             user = User.query.get_or_404(user_id)
+            if user.id == current_user.id:
+                flash("You cannot delete your own admin account.", "danger")
+                return redirect(url_for("main.admin_users"))
             db.session.delete(user)
-            db.session.commit()
-            flash("User deleted.", "success")
+            try:
+                db.session.commit()
+                flash("User deleted.", "success")
+            except Exception:
+                db.session.rollback()
+                flash("Could not delete user.", "danger")
             return redirect(url_for("main.admin_users"))
 
         full_name = request.form.get("full_name")
@@ -715,8 +768,12 @@ def admin_users():
                 is_active=True,
             )
             db.session.add(user)
-        db.session.commit()
-        flash("User saved successfully.", "success")
+        try:
+            db.session.commit()
+            flash("User saved successfully.", "success")
+        except Exception:
+            db.session.rollback()
+            flash("Could not save user. Please try again.", "danger")
         return redirect(url_for("main.admin_users"))
 
     users = User.query.order_by(User.full_name.asc()).all()
@@ -734,23 +791,29 @@ def interns():
 @login_required
 def feedback():
     if request.method == "POST":
-        user_id = int(request.form.get("user_id") or current_user.id)
         if current_user.role == "intern":
+            user_id = current_user.id
             supervisor_id = current_user.supervisor_id or 1
         else:
+            user_id = int(request.form.get("user_id") or current_user.id)
             supervisor_id = current_user.id
+
         feedback_entry = SupervisorFeedback(
             user_id=user_id,
             supervisor_id=supervisor_id,
             entity_type=request.form.get("entity_type", "Task"),
             entity_id=int(request.form.get("entity_id") or 0),
             rating=int(request.form.get("rating") or 0),
-            comment=request.form.get("comment"),
+            comment=request.form.get("comment") or "",
             approval_state=request.form.get("approval_state", "Pending"),
         )
         db.session.add(feedback_entry)
-        db.session.commit()
-        flash("Feedback submitted.", "success")
+        try:
+            db.session.commit()
+            flash("Feedback submitted.", "success")
+        except Exception:
+            db.session.rollback()
+            flash("Could not submit feedback. Please try again.", "danger")
         return redirect(url_for("main.feedback"))
 
     feedback_list = SupervisorFeedback.query.filter_by(user_id=current_user.id).all() if current_user.role == "intern" else SupervisorFeedback.query.filter_by(supervisor_id=current_user.id).all()

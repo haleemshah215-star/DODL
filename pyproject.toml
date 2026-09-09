@@ -1,0 +1,6 @@
+[project]
+name = "dodl-internship"
+version = "1.0.0"
+
+[tool.vercel]
+entrypoint = "api.index:app"

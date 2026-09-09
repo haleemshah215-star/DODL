@@ -1,10 +1,11 @@
 import os
 from datetime import datetime, date
 
-from flask import Flask
+from flask import Flask, abort, send_from_directory
 from flask_bcrypt import Bcrypt
 from flask_login import LoginManager
 from flask_sqlalchemy import SQLAlchemy
+from werkzeug.middleware.proxy_fix import ProxyFix
 
 
 db = SQLAlchemy()
@@ -17,7 +18,7 @@ login_manager.login_message_category = "info"
 @login_manager.user_loader
 def load_user(user_id):
     from .models import User
-    return User.query.get(int(user_id))
+    return db.session.get(User, int(user_id))
 
 
 def seed_demo_data():
@@ -223,27 +224,68 @@ def seed_demo_data():
         ActivityLog(user_id=supervisor.id, action="Task assigned", details="Task assigned to intern.", created_at=datetime.utcnow()),
     ])
 
-    db.session.commit()
+    try:
+        db.session.commit()
+    except Exception:
+        db.session.rollback()
 
 
 def create_app():
-    app = Flask(__name__, template_folder="../templates", static_folder="../static")
-    app.config["SECRET_KEY"] = "dodl_internship_management_system_secret_key"
-    app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///dodl_internship.db"
+    base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    template_dir = os.path.join(base_dir, "templates")
+    static_dir = os.path.join(base_dir, "static")
+
+    app = Flask(__name__, template_folder=template_dir, static_folder=static_dir)
+
+    is_vercel = os.environ.get("VERCEL") == "1" or os.environ.get("VERCEL_ENV") is not None
+
+    app.config["SECRET_KEY"] = os.environ.get("SECRET_KEY", "dodl_internship_management_system_secret_key")
+
+    # Database configuration (support external PostgreSQL or SQLite)
+    db_url = os.environ.get("DATABASE_URL")
+    if db_url:
+        if db_url.startswith("postgres://"):
+            db_url = db_url.replace("postgres://", "postgresql://", 1)
+        app.config["SQLALCHEMY_DATABASE_URI"] = db_url
+    elif is_vercel:
+        # On Vercel, root filesystem is read-only; use /tmp for SQLite
+        app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:////tmp/dodl_internship.db"
+    else:
+        local_db = os.path.join(base_dir, "dodl_internship.db")
+        app.config["SQLALCHEMY_DATABASE_URI"] = f"sqlite:///{local_db}"
+
     app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
-    app.config["UPLOAD_FOLDER"] = os.path.join(os.path.dirname(os.path.dirname(__file__)), "static", "uploads")
+
+    # Safe uploads directory handling
+    if is_vercel:
+        upload_folder = os.path.join("/tmp", "uploads")
+    else:
+        upload_folder = os.path.join(static_dir, "uploads")
+
+    try:
+        os.makedirs(upload_folder, exist_ok=True)
+    except OSError:
+        upload_folder = os.path.join("/tmp", "uploads")
+        os.makedirs(upload_folder, exist_ok=True)
+
+    app.config["UPLOAD_FOLDER"] = upload_folder
     app.config["MAX_CONTENT_LENGTH"] = 16 * 1024 * 1024
-    os.makedirs(app.config["UPLOAD_FOLDER"], exist_ok=True)
 
     db.init_app(app)
     bcrypt.init_app(app)
     login_manager.init_app(app)
 
+    # Proxy headers for Vercel edge reverse proxy
+    app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_proto=1, x_host=1, x_prefix=1)
+
     from . import models
 
     with app.app_context():
-        db.create_all()
-        seed_demo_data()
+        try:
+            db.create_all()
+            seed_demo_data()
+        except Exception as e:
+            app.logger.warning(f"Database init note: {e}")
 
     from .routes import bp
     app.register_blueprint(bp)
@@ -251,5 +293,21 @@ def create_app():
     @app.context_processor
     def inject_globals():
         return {"now": datetime.utcnow()}
+
+    @app.route("/static/uploads/<path:filename>")
+    def uploaded_file(filename):
+        target = os.path.join(app.config["UPLOAD_FOLDER"], filename)
+        if os.path.exists(target):
+            return send_from_directory(app.config["UPLOAD_FOLDER"], filename)
+        fallback = os.path.join(static_dir, "uploads")
+        if os.path.exists(os.path.join(fallback, filename)):
+            return send_from_directory(fallback, filename)
+        abort(404)
+
+    @app.route("/api/index")
+    @app.route("/api")
+    def api_entrypoint_fallback():
+        from flask import redirect, url_for
+        return redirect(url_for("main.landing"))
 
     return app
